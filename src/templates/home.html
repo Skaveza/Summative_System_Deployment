@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="HealthBridge - Find the best healthcare providers near you with ratings and comprehensive information">
+    <title>HealthBridge - Your Personal Healthcare Navigator</title>
+    <style>
+        :root {
+            --primary-color: #2c7be5;
+            --secondary-color: #00d97e;
+            --dark-color: #12263f;
+            --light-color: #f8f9fa;
+            --text-color: #495057;
+            --shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        body {
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+        
+        .top-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: white;
+            padding: 15px 5%;
+            box-shadow: var(--shadow);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        
+        .logo {
+            font-size: 24px;
+            font-weight: bold;
+        }
+        
+        .logo img {
+            height: 50px;
+            transition: transform 0.3s ease;
+        }
+        
+        .logo img:hover {
+            transform: scale(1.05);
+        }
+        
+        .nav-links {
+            list-style: none;
+            display: flex;
+            gap: 25px;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .nav-links li {
+            display: inline;
+        }
+        
+        .nav-links a {
+            text-decoration: none;
+            color: var(--dark-color);
+            font-size: 16px;
+            font-weight: 600;
+            padding: 8px 12px;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-links a:hover {
+            color: var(--primary-color);
+            background-color: rgba(44, 123, 229, 0.1);
+        }
+        
+        .hero {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 60px 5%;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8eb 100%);
+        }
+        
+        .hero-content {
+            max-width: 600px;
+        }
+        
+        .hero h1 {
+            font-size: 2.8rem;
+            color: var(--dark-color);
+            margin-bottom: 20px;
+            line-height: 1.2;
+        }
+        
+        .hero p {
+            font-size: 1.1rem;
+            margin-bottom: 30px;
+        }
+        
+        .hero-image {
+            max-width: 500px;
+            border-radius: 10px;
+            box-shadow: var(--shadow);
+        }
+        
+        .cta-button {
+            display: inline-block;
+            background-color: var(--primary-color);
+            color: white;
+            padding: 12px 30px;
+            border-radius: 30px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            border: 2px solid var(--primary-color);
+        }
+        
+        .cta-button:hover {
+            background-color: transparent;
+            color: var(--primary-color);
+            transform: translateY(-2px);
+        }
+        
+        .features {
+            padding: 80px 5%;
+            text-align: center;
+            background-color: white;
+        }
+        
+        .features h2 {
+            font-size: 2.2rem;
+            color: var(--dark-color);
+            margin-bottom: 50px;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+        
+        .feature-card {
+            padding: 30px;
+            border-radius: 8px;
+            background-color: var(--light-color);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .feature-icon {
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            margin-bottom: 20px;
+        }
+        
+        .feature-card h3 {
+            color: var(--dark-color);
+            margin-bottom: 15px;
+        }
+        
+        footer {
+            background-color: var(--dark-color);
+            color: white;
+            padding: 40px 5%;
+            text-align: center;
+        }
+        
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .footer-links a {
+            color: white;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        
+        .footer-links a:hover {
+            color: var(--secondary-color);
+        }
+        
+        .copyright {
+            opacity: 0.8;
+            font-size: 0.9rem;
+        }
+        
+        @media (max-width: 768px) {
+            .hero {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .hero-image {
+                margin-top: 40px;
+                max-width: 100%;
+            }
+            
+            .nav-links {
+                gap: 15px;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+</head>
+<body>
+
+    <header class="top-container">
+        <div class="logo">
+            <a href="/index">
+                <img src="{{ url_for('static', filename='healthbridgelogo.jpeg') }}" alt="HealthBridge Logo">
+            </a>
+        </div>
+        <nav>
+            <ul class="nav-links">
+                <li><a href="{{ url_for('preprocess') }}">Pre-process</a></li>
+            <li><a href="{{ url_for('visualization') }}">Visualization</a></li>
+            <li><a href="{{ url_for('retrain') }}">Re-train</a></li>
+            <li><a href="{{ url_for('predict') }}">Predict</a></li>
+            </ul>
+        </nav>
+    </header>
+    
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Find Quality Healthcare Near You</h1>
+            <p>HealthBridge connects you with the best healthcare providers based on your location, needs, and preferences. Get personalized recommendations at the click of a button.</p>
+            <a href="/predict" class="cta-button">Find Providers Now</a>
+        </div>
+        <img src="{{ url_for('static', filename='tourism-concept-smartphone-displaying-gps-street-road-map-navigation_896558-41929.avif') }}" alt="Maps on phone" class="hero-image">
+    </section>
+    
+    <section class="features">
+        <h2>Why Choose HealthBridge?</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-map-marker-alt"></i>
+                </div>
+                <h3>Location-Based</h3>
+                <p>Find healthcare providers near your current location or any area you specify. We prioritize convenience without compromising quality.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-star"></i>
+                </div>
+                <h3>Provider Ratings</h3>
+                <p>Access comprehensive ratings and reviews to make informed decisions about your healthcare providers.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <h3>Real-Time Availability</h3>
+                <p>See which providers are available when you need care, whether it's an emergency or scheduled appointment.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-money-bill-wave"></i>
+                </div>
+                <h3>Payment Options</h3>
+                <p>Filter providers by your preferred payment method - insurance, cash, or other payment plans.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-user-md"></i>
+                </div>
+                <h3>Specialty Care</h3>
+                <p>Find specialists for your specific healthcare needs, from general practitioners to rare specialists.</p>
+            </div>
+            
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <h3>Trusted Information</h3>
+                <p>Our data is regularly updated and verified to ensure you get accurate, reliable information.</p>
+            </div>
+        </div>
+    </section>
+    
+    <section class="how-it-works" style="padding: 60px 5%; background-color: #f8f9fa; text-align: center;">
+        <h2 style="font-size: 2.2rem; color: var(--dark-color); margin-bottom: 20px;">How HealthBridge Works</h2>
+        <div style="max-width: 800px; margin: 0 auto;">
+            <div style="display: flex; justify-content: space-between; margin-top: 40px; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 200px; margin: 15px; padding: 20px; background: white; border-radius: 8px; box-shadow: var(--shadow);">
+                    <div style="font-size: 2rem; color: var(--primary-color); margin-bottom: 15px;">1</div>
+                    <h3 style="color: var(--dark-color);">Enter Your Needs</h3>
+                    <p>Tell us your location, required services, preferred time, and payment method.</p>
+                </div>
+                <div style="flex: 1; min-width: 200px; margin: 15px; padding: 20px; background: white; border-radius: 8px; box-shadow: var(--shadow);">
+                    <div style="font-size: 2rem; color: var(--primary-color); margin-bottom: 15px;">2</div>
+                    <h3 style="color: var(--dark-color);">Get Matched</h3>
+                    <p>Our algorithm analyzes thousands of providers to find your best matches.</p>
+                </div>
+                <div style="flex: 1; min-width: 200px; margin: 15px; padding: 20px; background: white; border-radius: 8px; box-shadow: var(--shadow);">
+                    <div style="font-size: 2rem; color: var(--primary-color); margin-bottom: 15px;">3</div>
+                    <h3 style="color: var(--dark-color);">Choose Your Provider</h3>
+                    <p>Review options and select the healthcare provider that meets your needs.</p>
+                </div>
+            </div>
+            <a href="{{ url_for('predict') }}" class="cta-button" style="margin-top: 50px;">Try It Now</a>
+        </div>
+    </section>
+    
+    <footer>
+        <div class="footer-links">
+            <li><a class="active" href="#home">Home</a></li>
+            <li><a href="{{ url_for('preprocess') }}">Pre-process</a></li>
+            <li><a href="{{ url_for('visualization') }}">Visualization</a></li>
+            <li><a href="{{ url_for('retrain') }}">Re-train</a></li>
+            <li><a href="{{ url_for('predict') }}">Predict</a></li>
+        </div>
+        <div class="copyright">
+            &copy; 2025 HealthBridge. All rights reserved.
+        </div>
+    </footer>
+</body>
+</html>
