@@ -1,6 +1,8 @@
 # HealthBridge - Healthcare Facility Rating Predictor
 ## MLOps Pipeline for Ugandan Healthcare Facilities
 
+## Demo Video - https://www.loom.com/share/6494f55dd0ad42c1938c1bccad9d6611?sid=d25238bc-4993-4382-9c48-d6c21ee88735
+
 ### Project Overview
 HealthBridge is a user-friendly, **FastAPI-based** machine learning system that predicts the quality of healthcare facilities in Uganda. It classifies facilities as **Low, Medium, or High** quality based on:
 - Services provided
