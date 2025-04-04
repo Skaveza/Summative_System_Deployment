@@ -181,10 +181,6 @@
         <h2>Predict Provider Rating</h2>
         <form method="POST" action="/predict">
             <div class="form-group">
-                <label>Facility Name</label>
-                <input type="text" name="facility_name" placeholder="Enter facility name" required>
-            </div>
-            <div class="form-group">
                 <label>Services Offered</label>
                 <textarea name="services" rows="2" placeholder="e.g., Emergency care, Surgery" required></textarea>
             </div>
@@ -201,7 +197,7 @@
             </div>
             <div class="form-group">
                 <label>Mode of Payment</label>
-                <select name="mode of payment" required>
+                <select name="Payment" required>
                     <option value="insurance">Insurance</option>
                     <option value="cash">Cash</option>
                     <option value="both">Both</option>
@@ -223,11 +219,11 @@
         </form>
 
         <!-- Prediction Result -->
-        {% if prediction %}
         <div class="result">
             <h3>Prediction Result</h3>
             <p class="rating">Rating: {{ prediction }}</p>
-            <p>Confidence: {{ confidence|round(2) }}%</p>
+            <p>Confidence: {{ confidence if confidence is not none else 'N/A' }}%</p>
+
             <p>Probabilities:</p>
             <ul>
                 {% for prob in probabilities %}
@@ -235,7 +231,7 @@
                 {% endfor %}
             </ul>
         </div>
-        {% endif %}
+
     </section>
 
     <!-- Footer -->

@@ -1,80 +1,172 @@
-# Import necessary functions from preprocess_code.py
-from preprocessing_code import validate_and_preprocess, prepare_training_data
-import joblib
+import pandas as pd
 import numpy as np
-from sklearn.metrics import accuracy_score, f1_score, recall_score
-from model_utils import create_optimized_nn 
-from keras.callbacks import ModelCheckpoint, EarlyStopping, ReduceLROnPlateau
-from datetime import datetime
+import joblib
+import os
+from sklearn.model_selection import train_test_split
+from sklearn.utils.class_weight import compute_class_weight
+from keras.models import Sequential
+from keras.layers import Dense, Dropout
+from keras.optimizers import Adam
+from keras.callbacks import ReduceLROnPlateau, EarlyStopping
+from tensorflow.keras.regularizers import l1_l2
+import tensorflow as tf
 import matplotlib.pyplot as plt
 
-# Function to retrain the model from a file
-def retrain_model_from_file(filepath):
-    try:
-        # Step 1: Preprocess Data using your existing preprocessing pipeline
-        df, rating_mean = validate_and_preprocess(filepath)  # Validate and preprocess data
-        preprocessors = joblib.load("saved_preprocessors/preprocessors_latest.pkl")  # Load preprocessor
+# Import preprocessing functions
+from preprocessing_code import validate_and_preprocess, prepare_training_data
 
-        # Step 2: Prepare the training data
-        processed_data = prepare_training_data(df)
-        
-        # Get the processed features and labels
-        X_resampled = processed_data['X_resampled']
-        y_resampled = processed_data['y_resampled']
+def train_model(data_path, output_dir="models"):
+    """
+    Trains an optimized neural network model for classification.
 
-        # Step 3: Create the model
-        input_shape = (X_resampled.shape[1],)
-        model = create_optimized_nn(input_shape=input_shape, num_classes=y_resampled.shape[1])
+    Parameters:
+    - data_path (str): Path to the dataset file (CSV format).
+    - output_dir (str): Directory where the trained model will be saved.
 
-        # Step 4: Set up callbacks
-        model_checkpoint = ModelCheckpoint('best_model.h5', save_best_only=True, monitor='val_loss', mode='min')
-        early_stopping = EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
-        reduce_lr = ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=5, min_lr=0.00001)
+    Returns:
+    - dict: Contains training history and model evaluation results.
+    """
+    
+    # Ensure output directory exists
+    os.makedirs(output_dir, exist_ok=True)
 
-        # Step 5: Train the model
-        history = model.fit(
-            X_resampled, y_resampled,
-            batch_size=16,
-            epochs=50,
-            validation_split=0.2,
-            callbacks=[early_stopping, reduce_lr, model_checkpoint],
-            verbose=1
+    # Step 1: Load Dataset
+    print(f"Loading dataset from: {data_path}")
+    df = pd.read_csv(data_path)
+
+    # Step 2: Preprocess the data
+    print("Preprocessing data...")
+    validated_data, _ = validate_and_preprocess(df)
+    prep_result = prepare_training_data(validated_data)
+
+    # Extract components
+    X_resampled = prep_result['X_resampled']
+    y_resampled = prep_result['y_resampled']
+
+    # Step 3: Split data into train, validation, and test sets
+    print("Splitting data into train/validation/test sets...")
+
+    X_train, X_test, y_train, y_test = train_test_split(X_resampled, y_resampled, test_size=0.2, random_state=42)
+    X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.25, random_state=42)
+
+    splits = {
+        'train': (X_train, y_train),
+        'validation': (X_val, y_val),
+        'test': (X_test, y_test)
+    }
+
+    print(f"Training set: {X_train.shape[0]} samples, {X_train.shape[1]} features")
+    print(f"Validation set: {X_val.shape[0]} samples")
+    print(f"Test set: {X_test.shape[0]} samples")
+
+    # Compute class weights
+    def get_class_weights(y_resampled):
+        class_weights = compute_class_weight(
+            class_weight="balanced",
+            classes=np.unique(y_resampled),
+            y=y_resampled
+        )
+        return dict(enumerate(class_weights))
+
+    class_weights = get_class_weights(np.argmax(y_train, axis=1))  # Convert one-hot labels to categorical
+
+    # Step 4: Define the Neural Network Model
+    def create_model(input_shape, num_classes=3):
+        model = Sequential([
+            Dense(256, activation='relu', input_shape=input_shape, kernel_regularizer=l1_l2(l1=0.001, l2=0.001)),
+            Dropout(0.4),
+
+            Dense(128, activation='relu', kernel_regularizer=l1_l2(l1=0.001, l2=0.001)),
+            Dropout(0.3),
+
+            Dense(64, activation='relu', kernel_regularizer=l1_l2(l1=0.001, l2=0.001)),
+            Dropout(0.3),
+
+            Dense(32, activation='relu', kernel_regularizer=l1_l2(l1=0.001, l2=0.001)),
+            Dropout(0.2),
+
+            Dense(num_classes, activation='softmax')
+        ])
+
+        model.compile(
+            optimizer=Adam(learning_rate=0.0005),
+            loss='categorical_crossentropy',
+            metrics=['accuracy']
         )
 
-        # Step 6: Plot Training History (Optional)
-        plot_training_history(history)
+        return model
 
-        # Step 7: Evaluate the model
-        # Get predictions on validation data
-        y_val_pred = model.predict(X_resampled)
-        y_val_pred = np.argmax(y_val_pred, axis=1)
-        y_val_true = np.argmax(y_resampled, axis=1)
+    input_shape = (X_train.shape[1],)
+    model = create_model(input_shape, num_classes=3)
 
-        # Calculate evaluation metrics
-        accuracy = accuracy_score(y_val_true, y_val_pred)
-        f1 = f1_score(y_val_true, y_val_pred, average='weighted')
-        recall = recall_score(y_val_true, y_val_pred, average='weighted')
+    # Define callbacks
+    callbacks = [
+        ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=5, min_lr=0.00001),
+        EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
+    ]
 
-        # Print metrics
-        print(f"Evaluation after retraining:")
-        print(f"Accuracy: {accuracy:.4f}")
-        print(f"F1 Score: {f1:.4f}")
-        print(f"Recall: {recall:.4f}")
+    # Step 5: Train the model
+    print("Training the model...")
+    history = model.fit(
+        X_train, y_train,
+        batch_size=32,
+        epochs=50,
+        validation_data=(X_val, y_val),
+        callbacks=callbacks,
+        class_weight=class_weights,
+        verbose=1
+    )
 
-        # Confusion Matrix (Optional)
-        plot_confusion_matrix(y_val_true, y_val_pred)
+    # Step 6: Evaluate the model
+    print("Evaluating the model on the test set...")
+    test_loss, test_accuracy = model.evaluate(X_test, y_test, verbose=1)
+    print(f"Test Loss: {test_loss}")
+    print(f"Test Accuracy: {test_accuracy}")
 
-        # Step 8: Save the retrained model
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        model_filename = f"retrained_model_{timestamp}.h5"
-        model.save(model_filename)
-        
-        # Optionally, save the updated LabelEncoder and preprocessors
-        joblib.dump(preprocessors, f'saved_preprocessors/preprocessors_{timestamp}.pkl')
-        
-        # Return metrics for potential frontend usage
-        return accuracy, f1, recall
+    # Step 7: Save the model
+    model_filename = os.path.join(output_dir, "optimized_model.h5")
+    model.save(model_filename)
+    print(f"Model saved at: {model_filename}")
 
-    except Exception as e:
-        print(f"Error during retraining: {e}")
-        return None, None, None
+    # Step 8: Save preprocessors
+    preprocessors_filename = os.path.join(output_dir, "preprocessors.pkl")
+    joblib.dump(prep_result['preprocessors'], preprocessors_filename)
+    print(f"Preprocessors saved at: {preprocessors_filename}")
+
+    # Step 9: Plot Training History
+    def plot_history(history):
+        plt.figure(figsize=(12, 6))
+
+        # Plot accuracy
+        plt.subplot(1, 2, 1)
+        plt.plot(history.history['accuracy'], label='Train Accuracy')
+        plt.plot(history.history['val_accuracy'], label='Validation Accuracy')
+        plt.title('Model Accuracy')
+        plt.xlabel('Epoch')
+        plt.ylabel('Accuracy')
+        plt.legend()
+
+        # Plot loss
+        plt.subplot(1, 2, 2)
+        plt.plot(history.history['loss'], label='Train Loss')
+        plt.plot(history.history['val_loss'], label='Validation Loss')
+        plt.title('Model Loss')
+        plt.xlabel('Epoch')
+        plt.ylabel('Loss')
+        plt.legend()
+
+        plt.tight_layout()
+        plt.show()
+
+    plot_history(history)
+
+    # Step 10: Return training results
+    return {
+        "train_samples": X_train.shape[0],
+        "validation_samples": X_val.shape[0],
+        "test_samples": X_test.shape[0],
+        "test_loss": test_loss,
+        "test_accuracy": test_accuracy,
+        "model_path": model_filename,
+        "preprocessors_path": preprocessors_filename
+    }
