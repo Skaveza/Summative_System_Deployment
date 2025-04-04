@@ -2,7 +2,7 @@
 ## MLOps Pipeline for Ugandan Healthcare Facilities
 
 ### Project Overview
-HealthBridge is a user-friendly, Flask-based machine learning system that predicts the quality of healthcare facilities in Uganda. It classifies facilities as **Low, Medium, or High** quality based on:
+HealthBridge is a user-friendly, **FastAPI-based** machine learning system that predicts the quality of healthcare facilities in Uganda. It classifies facilities as **Low, Medium, or High** quality based on:
 - Services provided
 - Geographic location (latitude & longitude)
 - Operating hours
@@ -26,10 +26,9 @@ cd HealthBridge
 pip3 install -r requirements.txt
 ```
 
-### 3. Start the Flask server
+### 3. Start the FastAPI server
 ```bash
-export FLASK_APP=app.py
-flask run --host=0.0.0.0 --port=5000
+uvicorn app:app --host 0.0.0.0 --port 5000
 ```
 Now, your API is up and running at **http://localhost:5000**!
 
@@ -73,21 +72,6 @@ curl -X POST http://localhost:5000/api/retrain \
 
 ---
 
-## Deploying with Docker
-
-### 1. Build the Docker image
-```bash
-docker build -t healthbridge .
-```
-
-### 2. Run the container
-```bash
-docker run -p 5000:5000 healthbridge
-```
-Your app is now running inside a Docker container!
-
----
-
 ## Model Performance
 
 ### Classification Report:
@@ -105,11 +89,36 @@ Your app is now running inside a Docker container!
 
 ---
 
+## Retraining Pipeline
+1. **Upload new data** via UI or API endpoint (`/upload`).
+2. **Trigger retraining** via the `/retrain` endpoint or UI button.
+3. **Pipeline automatically:**
+   - Processes the new data.
+   - Retrains the model.
+   - Saves & updates the deployed model.
+
+---
+
+## Performance Testing
+- Simulated high-traffic requests using **Locust**.
+- Measured latency and response times under different configurations.
+- Results:
+  - **Latency:** [XX] ms
+  - **Response Time:** [XX] ms (with varying load conditions)
+  - **Max Requests per Second:** [XX]
+
+---
+
+## Video Demo
+Watch the full demo here: [YouTube Link]
+
+---
+
 ## License
 
 **MIT License**  
 © 2025 Sifa Kaveza Mwachoni  
-See [LICENSE](LICENSE) file for details.
+
 
 ---
 
