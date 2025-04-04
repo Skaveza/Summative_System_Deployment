@@ -9,7 +9,7 @@ HealthBridge is a user-friendly, **FastAPI-based** machine learning system that 
 - Payment methods accepted
 - Subcounty location
 
-**Model Accuracy:** 87% (Tested on 3,396 Ugandan healthcare facilities)
+**Model Accuracy:** 87% 
 
 ---
 
